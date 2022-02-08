@@ -67,9 +67,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MetodosWeb_Hoteles.asmx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClasesProcedimientos\hotelesProcedimientos.cs" />
+    <Compile Include="Entidades\Hoteles.cs" />
+    <Compile Include="MetodosWeb_Hoteles.asmx.cs">
+      <DependentUpon>MetodosWeb_Hoteles.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

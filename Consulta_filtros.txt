@@ -1,0 +1,68 @@
+create procedure GetAllFromDisponibilidadByCriterios
+@fechaIni smalldatetime null
+, @fechaFin smalldatetime null
+, @hotel int
+, @tipo_hab int
+, @cupo int
+
+as
+begin
+set nocount on
+
+DECLARE @sql nvarchar(max)
+SET @sql = '
+select h.ciudad  
+ , th.nombre  
+ , dis.cantidad as disponibles  
+from hoteles h  
+left outer join disponibilidad_habitaciones dh  
+ on h.id_hotel = dh.id_hotel  
+left outer join tipo_habitacion th  
+ on dh.id_tipo_hab = th.id  
+left outer join (select count(disponible) as cantidad, id_hotel, id_tipo_hab from disponibilidad_habitaciones where disponible <> 1 group by id_tipo_hab, id_hotel) as dis  
+ on dh.id_tipo_hab = dis.id_tipo_hab  
+ and dh.id_hotel = dis.id_hotel
+left outer join DatosReserva re
+	on dh.id_hotel = re.hotel
+	and dh.id_tipo_hab = re.tipo_hab
+ where 1 = 1'
+
+ if (@fechaIni is not null and @fechaIni != 0) and (@fechaFin is not null and @fechaIni != 0) 
+ set @sql = @sql + 'and re.fecha_checkin between @fechaIni and @fechaFin'
+ if (@hotel is not null and @hotel != 0)
+ set @sql = @sql + 'and h.id_hotel = @hotel'
+ if (@tipo_hab is not null and @tipo_hab != 0)
+ set @sql = @sql + 'and dh.id_tipo_hab = @tipo_hab'
+ if (@cupo is not null and @cupo != 0)
+ set @sql = @sql + 'and h.cupo <= @cupo'
+ if ((@fechaIni is not null and @fechaIni != 0) and (@fechaFin is not null and @fechaIni != 0)
+	and (@hotel is not null and @hotel != 0)
+	and (@tipo_hab is not null and @tipo_hab != 0)
+	and (@cupo is not null and @cupo != 0))
+set @sql = @sql + ' '
+
+set @sql = @sql + '
+group by h.ciudad  
+ , th.nombre  
+ , dis.cantidad
+order by h.id_hotel'
+
+print @sql
+
+exec sp_executesql @sql,
+N'
+,@fechaIni smalldatetime
+,@fechaFin smalldatetime
+,@hotel int
+,@tipo_hab int
+,@cupo int
+',
+@fechaIni
+,@fechaFin
+,@hotel
+,@tipo_hab
+,@cupo
+
+set nocount off
+end
+
